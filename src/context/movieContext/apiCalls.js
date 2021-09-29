@@ -29,12 +29,22 @@ export const getMovies = async (dispatch) => {
 export const createMovie = async (movie, dispatch) => {
   dispatch(createMovieStart());
   try {
-    const res = await axios.post("http://localhost:9090/api/movies", movie, {
-      headers: {
-        token: "Bearer " + JSON.parse(localStorage.getItem("user")).accessToken,
-      },
-    });
-    dispatch(createMovieSuccess(res.data));
+    const res = await axios.post(
+      "https://netflix-project-server.herokuapp.com/api/movies",
+      movie,
+      {
+        headers: {
+          token:
+            "Bearer " + JSON.parse(localStorage.getItem("user")).accessToken,
+        },
+      }
+    );
+    console.log("Movie Creation Result: ", res);
+    if(res.status == 201){
+      dispatch(createMovieSuccess(res.data));
+      return true;
+    }
+    
   } catch (err) {
     dispatch(createMovieFailure());
   }

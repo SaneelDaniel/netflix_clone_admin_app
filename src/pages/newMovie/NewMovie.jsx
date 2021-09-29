@@ -12,7 +12,7 @@ export default function NewMovie() {
   const [trailer, setTrailer] = useState(null);
   const [video, setVideo] = useState(null);
   const [uploaded, setUploaded] = useState(0);
-
+  const [uploadingBool, setUploading] = useState(false);
   const { dispatch } = useContext(MovieContext);
 
   const handleChange = (e) => {
@@ -20,8 +20,13 @@ export default function NewMovie() {
     setMovie({ ...movie, [e.target.name]: value });
   };
 
-  const upload = (items) => {
-    items.forEach((item) => {
+  const upload = async (items) => {
+    await items.forEach((item) => {
+      if (item.file === null) {
+        alert(`${item.label} cannot be null`);
+        setUploading(false);
+        return;
+      }
       const fileName = new Date().getTime() + item.label + item.file.name;
       const uploadTask = storage.ref(`/items/${fileName}`).put(item.file);
       uploadTask.on(
@@ -44,10 +49,13 @@ export default function NewMovie() {
         }
       );
     });
+
+    setUploading(false);
   };
 
   const handleUpload = (e) => {
     e.preventDefault();
+    setUploading(true);
     upload([
       { file: img, label: "img" },
       { file: imgTitle, label: "imgTitle" },
@@ -57,9 +65,19 @@ export default function NewMovie() {
     ]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    createMovie(movie, dispatch);
+    var res = await createMovie(movie, dispatch);
+    if (res) {
+      alert("Successfully Created The New Movie");
+      setMovie(null);
+      setImg(null);
+      setImgSm(null);
+      setImgTitle(null);
+      setTrailer(null);
+      setUploaded(0);
+      setVideo(null);
+    }
   };
 
   return (
@@ -174,9 +192,13 @@ export default function NewMovie() {
           <button className="addProductButton" onClick={handleSubmit}>
             Create
           </button>
-        ) : (
+        ) : !uploadingBool ? (
           <button className="addProductButton" onClick={handleUpload}>
             Upload
+          </button>
+        ) : (
+          <button className="addProductButton" disabled>
+            Uploading
           </button>
         )}
       </form>
